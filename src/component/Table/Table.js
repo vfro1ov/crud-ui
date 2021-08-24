@@ -1,55 +1,55 @@
-import React from 'react'
+import React, { useState } from 'react';
 
-const UserTable = props => {
-  const handleDeleteUser = id => {
-    let answer = window.confirm('Are you sure?')
-
-    if (answer) {
-      props.deleteUser(id)
-    }
-  }
-  return (
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Username</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {props.users.length > 0 ? (
-          props.users.map(user => (
-            <tr key={user.id}>
-              <td>{user.name}</td>
-              <td>{user.username}</td>
-              <td>
-                {/* добавили обработку на клик */}
-                <button
-                  onClick={() => {
-                    props.editRow(user)
-                  }}
-                  className="button muted-button"
-                >
-                  Edit
-                </button>
-                <button
-                  className="button muted-button"
-                  onClick={() => handleDeleteUser(user.id)}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan={3}>No users</td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  )
+const TableHeader = () => {
+	return (
+			<thead>
+			<tr>
+					<th>Name</th>
+					<th>Email</th>
+					<th>Age</th>
+					<th>Remove</th>
+			</tr>
+			</thead>
+	)
 }
 
-export { UserTable }
+const TableBody = (props) => {
+	const [edit, setEdit] = useState(false)
+	const saveEditItem = () => {
+		setEdit(false);
+		props.editPerson()
+			}
+
+	const rows = props.characterData.map((row, _id) => {
+					return (
+							<tr key={row._id}>
+									<td>{row._id}</td>
+									<td>{row._id}</td>
+									<td>{row._id}</td>
+									<td>
+											<button onClick={() => props.removeCharacter(row._id)}>Delete</button> 
+											{edit ? (
+        <button onClick={saveEditItem}>Сохранить</button>
+      ) : (
+        <button onClick={() => setEdit(true)}>Редактировать</button>
+      )}
+
+									</td>
+							</tr>
+					)
+			})
+			return <tbody>{rows}</tbody>
+
+}
+
+const Table = (props) => {
+	const {characterData, removeCharacter} = props;
+
+	return (
+			<table>
+					<TableHeader />
+					<TableBody characterData={characterData} removeCharacter={removeCharacter} />
+			</table>
+	)
+}
+export default Table;

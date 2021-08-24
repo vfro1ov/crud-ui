@@ -1,81 +1,66 @@
-import React, { useState } from 'react'
-import { AddUserForm } from './component/Form/AddUserForm'
-import { EditUserForm } from './component/Form/EditUserForm'
-import { UserTable } from './component/Table/Table'
-import './App.css'
+import React, { Component } from 'react';
+import './App.css';
+import Form from './component/Form/Form';
+import Table from './component/Table/Table';
+import axios from 'axios'
 
-const App = () => {
-  const usersData = [
-    [],
-  ]
+class App extends Component {
+	state = {
+			characters: [],
+	}
 
-  const [users, setUsers] = useState(usersData)
-  // флаг editing - изначально false, функция установки флага
-  const [editing, setEditing] = useState(false)
-  // начальное значение для формы редактирования
-  // так как мы не знаем, кто редактируется - пустые поля
-  const initialFormState = { id: null, name: '', username: '' }
-  // значение "текущий пользователь на редактировании" + функция установки этого значения
-  const [currentUser, setCurrentUser] = useState(initialFormState)
+	componentDidMount() {
+			this.getPeople()
+	}
 
-  const addUser = user => {
-    user.id = users.length + 1
-    setUsers([...users, user])
+	getPeople() {
+			fetch("http://178.128.196.163:3000/api/records")
+					.then((result) => result.json())
+					.then((result) => this.setState({characters: result,}))
+					.catch(error => console.log(error));
+	}
+
+	handleSubmit = (character) => {
+			this.setState({characters: [...this.state.characters, character]})
+	}
+
+	removeCharacter = async (_id) => {
+			const {characters} = this.state;
+
+			await fetch('http://178.128.196.163:3000/api/records/' + _id, {
+					method: 'DELETE',
+			})
+					.then((result) => {
+							return result.json();
+					})
+					.catch((error) => console.log(error))
+
+			this.setState({
+					characters: characters.filter((character, i) => {
+							return i != _id;
+					})
+			})
+
+
+
+	}
+	async ediPerson(id, name, surname) {
+    await axios.post(
+      `http://178.128.196.163:3000/api/records/${id}`,
+      { data: { name, surname } }
+    )
   }
 
-  const deleteUser = id => {
-    setEditing(false)
-    setUsers(users.filter(user => user.id !== id))
-  }
 
-  // обновление пользователя
-  const updateUser = (id, updatedUser) => {
-    // когда мы готовы обновить пользователя, ставим флажок editing в false
-    setEditing(false)
-    // и обновляем пользователя, если нашли его по id
-    setUsers(users.map(user => (user.id === id ? updatedUser : user)))
-  }
-
-  // редактирование пользователя
-  const editRow = user => {
-    // готовы редактировать - флажок в true
-    setEditing(true)
-    // устанавливаем значения полей для формы редактирования
-    // на основании выбранного "юзера"
-    setCurrentUser({ id: user.id, name: user.name, username: user.username })
-  }
-
-  return (
-    <div className="container">
-      <h1>CRUD App with Hooks</h1>
-      <div className="flex-row">
-        <div className="flex-large">
-          {/* редактируем ? рисуй форму редактирования, иначе - форму добавления */}
-          {editing ? (
-            <div>
-              <h2>Edit user</h2>
-              <EditUserForm
-                editing={editing}
-                setEditing={setEditing}
-                currentUser={currentUser}
-                updateUser={updateUser}
-              />
-            </div>
-          ) : (
-            <div>
-              <h2>Add user</h2>
-              <AddUserForm addUser={addUser} />
-            </div>
-          )}
-        </div>
-        <div className="flex-large">
-          <h2>View users</h2>
-          {/* передаем editRow */}
-          <UserTable users={users} editRow={editRow} deleteUser={deleteUser} />
-        </div>
-      </div>
-    </div>
-  )
+	render() {
+			const {characters} = this.state;
+			return (
+					<div className='container'>
+							<Table characterData={characters} removeCharacter={this.removeCharacter} />
+							<Form handleSubmit={this.handleSubmit} />
+					</div>
+			)
+	}
 }
 
-export { App }
+export default App;
